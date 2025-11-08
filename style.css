@@ -21,6 +21,20 @@ body {
 
 }
 
+.info-header{
+    font-size: small;
+    margin-bottom: 5%; 
+    font-weight: 500; 
+    color: #828b8b; 
+    display: block;
+}
+
+.info-value{
+    font-size: large;
+    font-weight: 600; 
+    color: #353a3a;
+}
+
 #scene {
     width: 600px;
     height: 300px;
@@ -58,16 +72,24 @@ body {
     transform: translateX(-50%);
 }
 
-.info-header{
-    font-size: small;
-    margin-bottom: 5%; 
-    font-weight: 500; 
-    color: #828b8b; 
-    display: block;
+
+.visualized-weight{
+    bottom: 500%; 
+    opacity: 0.6; 
+    background-color: rgb(62, 96, 207);  
+    border-radius: 50%; 
+    position: absolute; 
+    line-height: 35px;
+    text-align: center;
+    color: white; 
+    font-size: small; 
+    font-weight: 600;
 }
 
-.info-value{
-    font-size: large;
-    font-weight: 600; 
-    color: #353a3a;
+
+.visualized-marker{
+    position: absolute; 
+    border-left: 1px dashed black; 
+    bottom: 100%;
+    opacity: 0.4;
 }
