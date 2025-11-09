@@ -127,3 +127,23 @@ body {
     background-color: rgb(114, 147, 235);
     border-radius: 12px;
 }
+
+#log {
+  margin-top: 5%;
+  max-height: 250px;
+  padding: 20px;
+  border: 1px solid lightgray;
+  border-radius: 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.log-item {
+  border: 1px solid #dcdcdc;
+  border-left: 5px solid lightskyblue;
+  border-radius: 4px 0 0 4px;
+  padding: 10px;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  word-break: break-word;
+}

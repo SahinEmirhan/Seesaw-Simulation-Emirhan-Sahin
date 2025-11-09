@@ -7,6 +7,7 @@ const leftWeightElement = document.getElementById("leftWeight");
 const rightWeightElement = document.getElementById("rightWeight");
 const nextWeightElement = document.getElementById("nextWeight");
 const resetButtonElement = document.getElementById("resetButton");
+const logElement = document.getElementById("log");
 let visualizedNextWeightElement = null;
 let visualizedMarkerElement = null;
 const seesawPos = seesawElement.getBoundingClientRect();
@@ -21,6 +22,7 @@ let seesawWeights = {
     }
 let torque = 0;
 let currentAngle = 0;
+let logs = [];
 let r, g, b;
 
 const STATE_KEY = "seesawState";
@@ -41,6 +43,7 @@ function handleClick(event){
     removeNextWeightVisualization();
     addWeightToSeesaw(nextWeight , xCoords , currentAngle);
     calcTiltAngle(nextWeight , xCoords);
+    createLog(nextWeight , xCoords);
     createNextRandomWeight();
     saveState();
 }
@@ -48,6 +51,16 @@ function handleClick(event){
 function handleMouseMove(event){
     calcXCoordForPivot(event);
     visualizeNextWeight();
+}
+
+
+function createLog(weight , xCoord){
+    const logItemElement = document.createElement('div');
+    logItemElement.className = 'log-item';
+    const weightLog = `${weight}kg weight dropped on ${xCoord < 0 ? 'left side' : xCoord > 0 ? 'right side' : 'center'} at ${Math.abs(xCoord.toFixed(1))}px from center`;
+    logs.push(weightLog);
+    logItemElement.textContent = weightLog;
+    logElement.appendChild(logItemElement);
 }
 
 function resetButtonClick(){ 
@@ -60,6 +73,7 @@ function resetButtonClick(){
     }
     torque = 0;
     currentAngle = 0;
+    logs = [];
     plankElement.querySelectorAll('.new-weight').forEach(node => node.remove());
     plankElement.style.setProperty("--tilt", `0deg`);
     angleElement.textContent = currentAngle;
@@ -67,6 +81,8 @@ function resetButtonClick(){
     leftWeightElement.textContent = leftSideWeight;
     createNextRandomWeight();
     nextWeightElement.textContent = nextWeight;
+
+    logElement.querySelectorAll('.log-item').forEach(node => node.remove());
     localStorage.removeItem(STATE_KEY);
 } 
 
@@ -77,7 +93,8 @@ function saveState() {
         rightTotal: rightSideWeight,
         torque,
         angle: currentAngle,
-        nextWeight
+        nextWeight,
+        logs
     };
     localStorage.setItem(STATE_KEY, JSON.stringify(snapshot));
 }
@@ -98,6 +115,13 @@ function updateUIFromState() {
         addWeightToSeesawVisualization(seesawWeights.rightSide[i].weight , seesawWeights.rightSide[i].xCoord);
     }
     
+    for(let i = 0; i< logs.length ; i++){
+        const logItemElement = document.createElement('div');
+        logItemElement.className = 'log-item';
+        logItemElement.textContent = logs[i];
+        logElement.appendChild(logItemElement);
+    }
+
 }
 
 function restoreState() {
@@ -114,7 +138,7 @@ function restoreState() {
         torque = stateObj.torque || 0;
         currentAngle = stateObj.angle || 0;
         nextWeight = stateObj.nextWeight;
-        
+        logs = stateObj.logs || [];
         
         updateUIFromState();
     } catch (err) {
@@ -143,7 +167,7 @@ function addWeightToSeesaw(weight , xCoord , angle){
 
 function addWeightToSeesawVisualization(weight ,xCoord , angle ){
     const plankPos = plankElement.getBoundingClientRect();
-        newWeightElement = document.createElement('div');
+        let newWeightElement = document.createElement('div');
         newWeightElement.className = 'new-weight';
         plankElement.append(newWeightElement);
         const xCoordsForPlank = (xCoord + plankPos.width / 2) * seesawPos.width / plankPos.width;
