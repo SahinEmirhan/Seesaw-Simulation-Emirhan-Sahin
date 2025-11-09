@@ -17,7 +17,7 @@ body {
     display : flex;
     justify-content: space-between;
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 150px;
 
 }
 
@@ -51,6 +51,9 @@ body {
 }
 
 #plank {
+    transform: rotate(var(--tilt, 0deg)); 
+    transition: transform 3s ease;
+    transform-origin: 50% 50%;
     width: 450px;
     height: 14px;
     background: #e96711;
@@ -74,9 +77,8 @@ body {
 
 
 .visualized-weight{
-    bottom: 500%; 
+    bottom: 1000%; 
     opacity: 0.6; 
-    background-color: rgb(62, 96, 207);  
     border-radius: 50%; 
     position: absolute; 
     line-height: 35px;
@@ -92,4 +94,21 @@ body {
     border-left: 1px dashed black; 
     bottom: 100%;
     opacity: 0.4;
+}
+
+@keyframes drop {
+  from { transform: translateY(-500%); }
+  to   { transform: translateY(-100%); }
+}
+
+.new-weight{
+    animation: drop 0.5s ease-out forwards;
+    opacity: 1;
+    border-radius: 50%; 
+    position: absolute; 
+    line-height: 35px;
+    text-align: center;
+    color: white; 
+    font-size: small; 
+    font-weight: 600;
 }

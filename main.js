@@ -8,9 +8,7 @@ const rightWeightElement = document.getElementById("rightWeight");
 const nextWeightElement = document.getElementById("nextWeight");
 let visualizedNextWeightElement = null;
 let visualizedMarkerElement = null;
-
-
-
+const seesawPos = seesawElement.getBoundingClientRect();
 let xCoords = 0;
 let nextWeight = 0;
 let rightSideWeight = 0;
@@ -22,7 +20,7 @@ let seesawWeights = {
     }
 let torque = 0;
 let currentAngle = 0;
-
+let r, g, b;
 
 const STATE_KEY = "seesawState";
 
@@ -36,7 +34,8 @@ document.addEventListener('DOMContentLoaded' , () => {
 
 function handleClick(event){
     calcXCoordForPivot(event);
-    addWeightToSeesaw(nextWeight , xCoords);
+    removeNextWeightVisualization();
+    addWeightToSeesaw(nextWeight , xCoords , currentAngle);
     calcTiltAngle(nextWeight , xCoords);
     createNextRandomWeight();
     saveState();
@@ -64,9 +63,18 @@ function updateUIFromState() {
     leftWeightElement.textContent = leftSideWeight;
     rightWeightElement.textContent = rightSideWeight;
     angleElement.textContent = currentAngle;
-    plankElement.style.rotate = `${currentAngle}deg`;
     nextWeightElement.textContent = nextWeight;
-
+    plankElement.style.setProperty("--tilt", `${currentAngle}deg`);
+    for(let i = 0; i < seesawWeights.leftSide.length; i++){
+        addWeightToSeesawVisualization(seesawWeights.leftSide[i].weight , seesawWeights.leftSide[i].xCoord);
+    }
+    for(let i = 0; i < seesawWeights.origin.length; i++){
+        addWeightToSeesawVisualization(seesawWeights.origin[i].weight , seesawWeights.origin[i].xCoord);
+    }
+    for(let i = 0; i < seesawWeights.rightSide.length; i++){
+        addWeightToSeesawVisualization(seesawWeights.rightSide[i].weight , seesawWeights.rightSide[i].xCoord);
+    }
+    
 }
 
 function restoreState() {
@@ -83,7 +91,8 @@ function restoreState() {
         torque = stateObj.torque || 0;
         currentAngle = stateObj.angle || 0;
         nextWeight = stateObj.nextWeight;
-
+        
+        
         updateUIFromState();
     } catch (err) {
         console.error("State parse error", err);
@@ -91,7 +100,8 @@ function restoreState() {
 }
 
 // deciding position (left or right) and adding weight to seesaw. 
-function addWeightToSeesaw(weight , xCoord ){
+function addWeightToSeesaw(weight , xCoord , angle){
+    addWeightToSeesawVisualization(weight , xCoord , angle);
     if(xCoord > 0){
         seesawWeights.rightSide.push({weight , xCoord})
         rightSideWeight += weight;
@@ -107,12 +117,41 @@ function addWeightToSeesaw(weight , xCoord ){
     }
 }
 
+
+function addWeightToSeesawVisualization(weight ,xCoord , angle ){
+    const plankPos = plankElement.getBoundingClientRect();
+        newWeightElement = document.createElement('div');
+        newWeightElement.className = 'new-weight';
+        plankElement.append(newWeightElement);
+        const xCoordsForPlank = (xCoord + plankPos.width / 2) * seesawPos.width / plankPos.width;
+        const WeightSize = weight * 4 + 31;
+        const alignedWeightPosition = xCoordsForPlank - WeightSize / 2;
+        newWeightElement.style.left = `${alignedWeightPosition}px`;
+        newWeightElement.style.rotate = `${-angle}deg`;
+        
+        newWeightElement.style.width = `${WeightSize}px`
+        newWeightElement.style.height = `${WeightSize}px`;
+        newWeightElement.style.lineHeight = `${WeightSize}px`;
+        newWeightElement.innerHTML = `${weight}kg`
+        r = weight * 6 + 55;
+        g = weight * 12 + 55;
+        b = weight * 14 + 110;
+        newWeightElement.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+
+        newWeightElement.addEventListener('animationend', () => {
+            newWeightElement.style.transition = "rotate 0.4s ease-in";
+            requestAnimationFrame(() => {
+            newWeightElement.style.rotate = "0deg"; 
+            });
+        }, { once: true });
+}
+
 //calculating plank angle. (can be max 30 and min -30)
 function calcTiltAngle(weight , xCoord){
     torque += weight * xCoord;
     currentAngle = Math.max(-30, Math.min(30, torque / 10));
     angleElement.innerHTML = currentAngle;
-    plankElement.style.rotate = `${currentAngle}deg`;
+    plankElement.style.setProperty("--tilt", `${currentAngle}deg`);
     
 }
 
@@ -127,9 +166,10 @@ function calcXCoordForPivot(event){
         xCoords = plankWidth;
     else if (xCoords < -plankWidth) 
         xCoords = -plankWidth;
+
 }
 
-const PlankPosForVisualize = plankElement.getBoundingClientRect();
+
 //visualizes the next weight before placing it on the seesaw.
 function visualizeNextWeight(){
     if(!visualizedNextWeightElement){
@@ -138,11 +178,15 @@ function visualizeNextWeight(){
         visualizedMarkerElement = document.createElement('div');
         visualizedMarkerElement.className = 'visualized-marker';
         seesawElement.append(visualizedNextWeightElement , visualizedMarkerElement);
+        r = nextWeight * 6 + 55;
+        g = nextWeight * 12 + 55;
+        b = nextWeight * 14 + 110;
+        visualizedNextWeightElement.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
     }
     
     const nextWeightPos = visualizedNextWeightElement.getBoundingClientRect();
-    const xCoordsForPlank = xCoords + PlankPosForVisualize.width / 2;
-    const alignedWeightPosition = xCoordsForPlank - nextWeightPos.width / 2;
+    const xCoordsForPlank = xCoords + seesawPos.width / 2;
+    const alignedWeightPosition = xCoordsForPlank - nextWeightPos.width / 2 ;
     
     visualizedNextWeightElement.style.left = `${alignedWeightPosition}px`;
 
@@ -150,13 +194,26 @@ function visualizeNextWeight(){
     visualizedNextWeightElement.style.width = `${WeightSize}px`
     visualizedNextWeightElement.style.height = `${WeightSize}px`;
     visualizedNextWeightElement.style.lineHeight = `${WeightSize}px`;
+    
     visualizedNextWeightElement.innerHTML = `${nextWeight}kg`
 
     const markerStartPosition = xCoordsForPlank;
-    visualizedMarkerElement.style.height = `${PlankPosForVisualize.top - nextWeightPos.bottom }px`
+    visualizedMarkerElement.style.height = `${seesawPos.top - nextWeightPos.bottom }px`
     visualizedMarkerElement.style.left = `${markerStartPosition}px`;
 
 }
+
+function removeNextWeightVisualization() {
+  if (visualizedNextWeightElement) {
+    visualizedNextWeightElement.remove();
+    visualizedNextWeightElement = null;
+  }
+  if (visualizedMarkerElement) {
+    visualizedMarkerElement.remove();
+    visualizedMarkerElement = null;
+  }
+}
+
 
 // creating next random weight.
 function createNextRandomWeight(){
