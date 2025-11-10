@@ -7,10 +7,15 @@ export default class SeesawController {
     this.view = new SeesawView();
 
     this.xCoords = 0;
+    this.isTouching = false;
 
     this.handleClick = this.handleClick.bind(this);
     this.handleMouseMove = this.handleMouseMove.bind(this);
     this.handleReset = this.handleReset.bind(this);
+    this.handleTouchStart = this.handleTouchStart.bind(this);
+    this.handleTouchMove = this.handleTouchMove.bind(this);
+    this.handleTouchEnd = this.handleTouchEnd.bind(this);
+    this.handleTouchCancel = this.handleTouchCancel.bind(this);
   }
 
   init() {
@@ -29,6 +34,18 @@ export default class SeesawController {
 
     this.view.sceneElement.addEventListener("click", this.handleClick);
     this.view.sceneElement.addEventListener("mousemove", this.handleMouseMove);
+    this.view.sceneElement.addEventListener("touchstart", this.handleTouchStart, {
+      passive: false
+    });
+    this.view.sceneElement.addEventListener("touchmove", this.handleTouchMove, {
+      passive: false
+    });
+    this.view.sceneElement.addEventListener("touchend", this.handleTouchEnd, {
+      passive: false
+    });
+    this.view.sceneElement.addEventListener("touchcancel", this.handleTouchCancel, {
+      passive: false
+    });
     document.getElementById("resetButton").addEventListener("click", this.handleReset);
   }
 
@@ -85,7 +102,12 @@ export default class SeesawController {
   calcXCoordForPivot(event) {
     const pivotPos = this.view.pivotElement.getBoundingClientRect();
     const plankPos = this.view.plankElement.getBoundingClientRect();
-    let xCoords = event.clientX - (pivotPos.left + pivotPos.width / 2);
+    const clientX =
+      (event.touches && event.touches.length && event.touches[0].clientX) ||
+      (event.changedTouches && event.changedTouches.length && event.changedTouches[0].clientX) ||
+      event.clientX;
+    if (typeof clientX !== "number") return;
+    let xCoords = clientX - (pivotPos.left + pivotPos.width / 2);
     const plankWidth = plankPos.width / 2;
     if (xCoords > plankWidth) xCoords = plankWidth;
     else if (xCoords < -plankWidth) xCoords = -plankWidth;
@@ -112,4 +134,32 @@ export default class SeesawController {
 
     this.model.logs.forEach(entry => this.view.createLog(entry));
   }
+
+  handleTouchStart(event) {
+    this.isTouching = true;
+    event.preventDefault();
+    this.calcXCoordForPivot(event);
+    this.view.visualizeNextWeight(this.xCoords, this.model.nextWeight);
+  }
+
+  handleTouchMove(event) {
+    if (!this.isTouching) return;
+    event.preventDefault();
+    this.calcXCoordForPivot(event);
+    this.view.visualizeNextWeight(this.xCoords, this.model.nextWeight);
+  }
+
+  handleTouchEnd(event) {
+    if (!this.isTouching) return;
+    this.isTouching = false;
+    event.preventDefault();
+    this.handleClick(event);
+  }
+
+  handleTouchCancel(event) {
+    if (!this.isTouching) return;
+    this.isTouching = false;
+    event.preventDefault();
+    this.view.removeNextWeightVisualization();
+  }
 }
