@@ -12,6 +12,7 @@ export default class SeesawView {
     this.visualizedNextWeightElement = null;
     this.visualizedMarkerElement = null;
     this.seesawPos = this.seesawElement.getBoundingClientRect();
+    this.dropSound = new Audio("public/sounds/drop.wav");
   }
 
   updateInfo({ leftWeight, rightWeight, angle, nextWeight }) {
@@ -42,12 +43,15 @@ export default class SeesawView {
         let g = weight * 12 + 55;
         let b = weight * 14 + 110;
         newWeightElement.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-
+        this.dropSound.currentTime = 0;
+        this.dropSound.play().catch(() => {});
         newWeightElement.addEventListener('animationend', () => {
             newWeightElement.style.transition = "rotate 0.4s ease-in";
             requestAnimationFrame(() => {
             newWeightElement.style.rotate = "0deg"; 
             });
+
+            
         }, { once: true });
 }
 
