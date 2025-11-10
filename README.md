@@ -2,7 +2,7 @@
 
 Interactive playground physics built with nothing but vanilla HTML, CSS, and JavaScript. Every click on the plank drops a randomly weighted object (1–10 kg), updates the torque balance, and animates the seesaw into its new equilibrium. State is saved in `localStorage`, so the scene survives page refreshes.
 
-> **Live demo:** `https://sahinemirhan.github.io/Seesaw-Simulation/`
+> **Live demo:** https://sahinemirhan.github.io/Seesaw-Simulation/
 
 ---
 
